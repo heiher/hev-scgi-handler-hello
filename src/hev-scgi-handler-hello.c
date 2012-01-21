@@ -24,6 +24,17 @@ static void hev_scgi_handler_default_response_write_header_handler(gpointer user
 static void hev_scgi_handler_default_output_stream_write_async_handler(GObject *source_object,
 			GAsyncResult *res, gpointer user_data);
 
+G_MODULE_EXPORT gboolean hev_scgi_handler_module_init(HevSCGIHandler *self)
+{
+	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+	return TRUE;
+}
+
+G_MODULE_EXPORT void hev_scgi_handler_module_finalize(HevSCGIHandler *self)
+{
+	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+}
+
 G_MODULE_EXPORT const gchar * hev_scgi_handler_module_get_name(HevSCGIHandler *self)
 {
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
