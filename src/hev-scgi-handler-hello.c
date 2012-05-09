@@ -19,9 +19,9 @@
 #define HEV_SCGI_HANDLER_HELLO_VERSION	"0.0.1"
 #define HEV_SCGI_HANDLER_HELLO_PATTERN	"^/scgi/hello.scgi$"
 
-static void hev_scgi_handler_default_response_write_header_handler(gpointer user,
+static void hev_scgi_handler_hello_response_write_header_handler(gpointer user,
 			gpointer user_data);
-static void hev_scgi_handler_default_output_stream_write_async_handler(GObject *source_object,
+static void hev_scgi_handler_hello_output_stream_write_async_handler(GObject *source_object,
 			GAsyncResult *res, gpointer user_data);
 
 G_MODULE_EXPORT gboolean hev_scgi_handler_module_init(HevSCGIHandler *self)
@@ -67,13 +67,13 @@ G_MODULE_EXPORT void hev_scgi_handler_module_handle(HevSCGIHandler *self, GObjec
 	output_stream = hev_scgi_response_get_output_stream(HEV_SCGI_RESPONSE(scgi_response));
 	res_hash_table = hev_scgi_response_get_header_hash_table(HEV_SCGI_RESPONSE(scgi_response));
 
-	g_hash_table_insert(res_hash_table, "Status", g_strdup("200 OK"));
-	g_hash_table_insert(res_hash_table, "Content-Type", g_strdup("text/html"));
+	g_hash_table_insert(res_hash_table, g_strdup("Status"), g_strdup("200 OK"));
+	g_hash_table_insert(res_hash_table, g_strdup("Content-Type"), g_strdup("text/html"));
 	hev_scgi_response_write_header(HEV_SCGI_RESPONSE(scgi_response),
-				hev_scgi_handler_default_response_write_header_handler, scgi_task);
+				hev_scgi_handler_hello_response_write_header_handler, scgi_task);
 }
 
-static void hev_scgi_handler_default_response_write_header_handler(gpointer user,
+static void hev_scgi_handler_hello_response_write_header_handler(gpointer user,
 			gpointer user_data)
 {
 	HevSCGITask *scgi_task = HEV_SCGI_TASK(user_data);
@@ -106,11 +106,11 @@ static void hev_scgi_handler_default_response_write_header_handler(gpointer user
 				g_hash_table_lookup(req_hash_table, "REMOTE_ADDR"),
 				g_hash_table_lookup(req_hash_table, "REMOTE_PORT"));
 	g_output_stream_write_async(output_stream, str->str, str->len, 0, NULL,
-				hev_scgi_handler_default_output_stream_write_async_handler,
+				hev_scgi_handler_hello_output_stream_write_async_handler,
 				scgi_task);
 }
 
-static void hev_scgi_handler_default_output_stream_write_async_handler(GObject *source_object,
+static void hev_scgi_handler_hello_output_stream_write_async_handler(GObject *source_object,
 			GAsyncResult *res, gpointer user_data)
 {
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
