@@ -40,7 +40,8 @@ static void hev_scgi_handler_iface_init(HevSCGIHandlerInterface * iface);
 G_DEFINE_DYNAMIC_TYPE_EXTENDED(HevSCGIHandlerHello, hev_scgi_handler_hello, G_TYPE_OBJECT, 0,
 			G_IMPLEMENT_INTERFACE_DYNAMIC(HEV_TYPE_SCGI_HANDLER, hev_scgi_handler_iface_init));
 
-static void hev_scgi_handler_hello_response_write_header_handler(gpointer user, gpointer user_data);
+static void hev_scgi_response_write_header_async_handler(GObject *source_object,
+			GAsyncResult *res, gpointer user_data);
 static void hev_scgi_handler_hello_output_stream_write_async_handler(GObject *source_object,
 			GAsyncResult *res, gpointer user_data);
 
@@ -254,11 +255,12 @@ static void hev_scgi_handler_hello_handle(HevSCGIHandler *self, GObject *scgi_ta
 
 	g_hash_table_insert(res_hash_table, g_strdup("Status"), g_strdup("200 OK"));
 	g_hash_table_insert(res_hash_table, g_strdup("Content-Type"), g_strdup("text/html"));
-	hev_scgi_response_write_header(HEV_SCGI_RESPONSE(scgi_response),
-				hev_scgi_handler_hello_response_write_header_handler, scgi_task);
+	hev_scgi_response_write_header_async(HEV_SCGI_RESPONSE(scgi_response), NULL,
+				hev_scgi_response_write_header_async_handler, scgi_task);
 }
 
-static void hev_scgi_handler_hello_response_write_header_handler(gpointer user, gpointer user_data)
+static void hev_scgi_response_write_header_async_handler(GObject *source_object,
+			GAsyncResult *res, gpointer user_data)
 {
 	HevSCGITask *scgi_task = HEV_SCGI_TASK(user_data);
 	HevSCGIHandler *self = HEV_SCGI_HANDLER(hev_scgi_task_get_handler(scgi_task));
@@ -270,6 +272,15 @@ static void hev_scgi_handler_hello_response_write_header_handler(gpointer user, 
 	GString *str = g_string_new(NULL);
 
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
+
+	if(!hev_scgi_response_write_header_finish(HEV_SCGI_RESPONSE(source_object),
+					res, NULL))
+	{
+		g_string_free(str, TRUE);
+		g_object_unref(scgi_task);
+
+		return;
+	}
 
 	scgi_request = hev_scgi_task_get_request(HEV_SCGI_TASK(scgi_task));
 	scgi_response = hev_scgi_task_get_response(HEV_SCGI_TASK(scgi_task));
