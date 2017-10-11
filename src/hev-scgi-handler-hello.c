@@ -61,9 +61,6 @@ static void hev_scgi_handler_hello_handle(HevSCGIHandler *self, GObject *scgi_ta
 
 static void hev_scgi_handler_hello_dispose(GObject *obj)
 {
-	HevSCGIHandlerHello *self = HEV_SCGI_HANDLER_HELLO(obj);
-	HevSCGIHandlerHelloPrivate *priv = HEV_SCGI_HANDLER_HELLO_GET_PRIVATE(self);
-
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
 
 	G_OBJECT_CLASS(hev_scgi_handler_hello_parent_class)->dispose(obj);
@@ -242,7 +239,6 @@ static const gchar * hev_scgi_handler_hello_get_pattern(HevSCGIHandler *handler)
 static void hev_scgi_handler_hello_handle(HevSCGIHandler *self, GObject *scgi_task)
 {
 	GObject *scgi_response = NULL;
-	GOutputStream *output_stream = NULL;
 	GHashTable *res_hash_table = NULL;
 
 	g_debug("%s:%d[%s]", __FILE__, __LINE__, __FUNCTION__);
@@ -250,7 +246,6 @@ static void hev_scgi_handler_hello_handle(HevSCGIHandler *self, GObject *scgi_ta
 	g_object_ref(scgi_task);
 
 	scgi_response = hev_scgi_task_get_response(HEV_SCGI_TASK(scgi_task));
-	output_stream = hev_scgi_response_get_output_stream(HEV_SCGI_RESPONSE(scgi_response));
 	res_hash_table = hev_scgi_response_get_header_hash_table(HEV_SCGI_RESPONSE(scgi_response));
 
 	g_hash_table_insert(res_hash_table, g_strdup("Status"), g_strdup("200 OK"));
@@ -266,7 +261,6 @@ static void hev_scgi_response_write_header_async_handler(GObject *source_object,
 	HevSCGIHandler *self = HEV_SCGI_HANDLER(hev_scgi_task_get_handler(scgi_task));
 	GObject *scgi_request = NULL;
 	GObject *scgi_response = NULL;
-	GInputStream *input_stream = NULL;
 	GOutputStream *output_stream = NULL;
 	GHashTable *req_hash_table = NULL;
 	GString *str = g_string_new(NULL);
@@ -285,7 +279,6 @@ static void hev_scgi_response_write_header_async_handler(GObject *source_object,
 	scgi_request = hev_scgi_task_get_request(HEV_SCGI_TASK(scgi_task));
 	scgi_response = hev_scgi_task_get_response(HEV_SCGI_TASK(scgi_task));
 
-	input_stream = hev_scgi_request_get_input_stream(HEV_SCGI_REQUEST(scgi_request));
 	output_stream = hev_scgi_response_get_output_stream(HEV_SCGI_RESPONSE(scgi_response));
 
 	req_hash_table = hev_scgi_request_get_header_hash_table(HEV_SCGI_REQUEST(scgi_request));
@@ -297,9 +290,9 @@ static void hev_scgi_response_write_header_async_handler(GObject *source_object,
 				"<strong>RemotePort:</strong> %s<br />",
 				hev_scgi_handler_get_name(HEV_SCGI_HANDLER(self)),
 				hev_scgi_handler_get_version(HEV_SCGI_HANDLER(self)),
-				g_hash_table_lookup(req_hash_table, "REQUEST_URI"),
-				g_hash_table_lookup(req_hash_table, "REMOTE_ADDR"),
-				g_hash_table_lookup(req_hash_table, "REMOTE_PORT"));
+				(char *) g_hash_table_lookup(req_hash_table, "REQUEST_URI"),
+				(char *) g_hash_table_lookup(req_hash_table, "REMOTE_ADDR"),
+				(char *) g_hash_table_lookup(req_hash_table, "REMOTE_PORT"));
 	g_output_stream_write_async(output_stream, str->str, str->len, 0, NULL,
 				hev_scgi_handler_hello_output_stream_write_async_handler,
 				scgi_task);
